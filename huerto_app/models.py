@@ -45,6 +45,7 @@ class CuidadoProgramado(models.Model):
     tipo_cuidado = models.CharField(max_length=20)
     frecuen_dias = models.IntegerField()
     prox_fecha = models.DateField()
+    hora = models.TimeField(null=True, blank=True)
     detalles = models.TextField(blank=True)
 
     class Meta:
