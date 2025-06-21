@@ -33,7 +33,7 @@
       <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">🔔 Notificaciones</a>
 
       <div class="text-gray-400 text-xs mt-4 ml-2">Acciones rápidas</div>
-      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">➕ Agregar Plantas</a>
+      <a href="#" onclick="abrirModal()" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">➕ Agregar Plantas</a>
       <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">🧪 Nuevo Cuidado</a>
       <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">📝 Registrar Cuidado</a>
     </nav>
@@ -54,5 +54,10 @@
     {% block content %}
     {% endblock %}
   </main>
+  
+  {% include "huerto_app/modales/modal_agregar_planta.html" %}
+
+  {% load static %}
+<script src="{% static 'js/modal.js' %}"></script>
 </body>
 </html>
