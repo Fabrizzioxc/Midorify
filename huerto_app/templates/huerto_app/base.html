@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Midorify{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="{% static 'huerto_app/img/favicon.ico' %}" />
+</head>
+<body class="flex bg-gray-100 min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white shadow-md p-4 flex flex-col ">
+    <div class="flex items-center justify-center gap-2 mt-4 mb-10 w-full">
+        <span class="text-green-700 text-2xl font-bold">Midorify</span>
+        <img src="{% static 'huerto_app/img/icono_hoja.svg' %}" alt="Planta" class="h-8 w-8" />
+    </div>
+
+
+    <nav class="flex-1 space-y-1 text-sm">
+      <a href="{% url 'index' %}" class="flex items-center gap-2 p-2 rounded hover:bg-green-50 {% if request.path == '/' %}bg-green-100 border-l-4 border-green-600{% endif %}">
+        🗂️ Dashboard
+      </a>
+
+      <a href="{% url 'plantas-list' %}" class="flex items-center gap-2 p-2 rounded hover:bg-green-50 {% if request.path == '/plantas/' %}bg-green-100 border-l-4 border-green-600{% endif %}">
+  🌱 Mis Plantas
+</a>
+      <a href="{% url 'cuidados_programados' %}" class="flex items-center gap-2 p-2 rounded hover:bg-green-50 {% if request.path == '/cuidados/' %}bg-green-100 border-l-4 border-green-600{% endif %}">
+        📅 Cuidados Programados
+      </a>
+      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">⏱️ Historial</a>
+      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">🔔 Notificaciones</a>
+
+      <div class="text-gray-400 text-xs mt-4 ml-2">Acciones rápidas</div>
+      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">➕ Agregar Plantas</a>
+      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">🧪 Nuevo Cuidado</a>
+      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">📝 Registrar Cuidado</a>
+    </nav>
+
+    <div class="mt-auto space-y-1">
+      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">⚙️ Configuración</a>
+      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">❓ Ayuda</a>
+
+      <div class="mt-4 flex items-center gap-2 p-2 bg-orange-100 rounded">
+        <div class="h-6 w-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">F</div>
+        <span class="text-sm font-medium text-orange-700">Fabrizzio Zambrano</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Contenido principal -->
+  <main class="flex-1 p-6 overflow-y-auto">
+    {% block content %}
+    {% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,280 @@
+{% extends "huerto_app/base.html" %}
+{% block title %}Mis Plantas{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Gestión de Plantas</h1>
+
+<!-- Acciones -->
+<div class="flex justify-between mb-4">
+  <button onclick="abrirModal()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
+  ➕ Nueva Planta
+</button>
+</div>
+
+<!-- Tabla de plantas -->
+<div class="overflow-x-auto bg-white shadow rounded">
+  <table class="min-w-full table-auto">
+ <thead class="bg-green-600 text-white text-sm">
+  <tr>
+    <th class="px-4 py-2 text-left">Imagen</th>
+    <th class="px-4 py-2 text-left">Nombre</th>
+    <th class="px-4 py-2 text-left">Tipo</th>
+    <th class="px-4 py-2 text-left">Cuidados</th>
+    <th class="px-4 py-2 text-left">Usuario</th>
+    <th class="px-4 py-2 text-left">Acciones</th>
+  </tr>
+</thead>
+<tbody class="text-sm text-gray-700">
+  {% for planta in plantas %}
+  <tr class="border-b">
+    <td class="px-4 py-2">
+  {% if planta.foto_url %}
+    <img src="{{ planta.foto_url }}" alt="Planta" class="w-16 h-16 object-cover rounded border" onerror="this.src='https://via.placeholder.com/64?text=❌'" />
+  {% else %}
+    <span class="text-gray-400 text-xs">Sin imagen</span>
+  {% endif %}
+</td>
+
+    <td class="px-4 py-2">{{ planta.planta_nom }}</td>
+    <td class="px-4 py-2">{{ planta.tipo_planta }}</td>
+    <td class="px-4 py-2">{{ planta.cuidados|truncatechars:50 }}</td>
+    <td class="px-4 py-2">{{ planta.usuario.nombre }}</td>
+    <td class="px-4 py-2">
+      <button 
+    onclick="abrirModalVer('{{ planta.planta_nom|escapejs }}', '{{ planta.tipo_planta|escapejs }}', '{{ planta.cuidados|escapejs }}', '{{ planta.foto_url }}')" 
+    class="text-green-600 hover:underline text-xs"
+  >
+    Ver
+  </button> |
+      <a href="#" 
+      class="text-blue-600 hover:underline text-xs"
+      onclick="abrirModalEditar('{{ planta.planta_id }}', '{{ planta.planta_nom|escapejs }}', '{{ planta.tipo_planta|escapejs }}', '{{ planta.cuidados|escapejs }}')"
+    >
+        Editar
+    </a> |
+      <button onclick="abrirModalEliminar('{{ planta.planta_id }}')" class="text-red-600 hover:underline text-xs">
+      Eliminar
+      </button>
+
+    </td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="6" class="text-center py-4 text-gray-500">No hay plantas registradas.</td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+  </table>
+</div>
+
+<!-- Modal -->
+<div id="modalPlanta" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg w-full max-w-lg p-6 shadow-lg relative">
+    <h2 class="text-xl font-semibold mb-4">Registrar Nueva Planta</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium">Nombre</label>
+          <input name="planta_nom" type="text" class="w-full border rounded px-3 py-1.5" required />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Tipo</label>
+          <input name="tipo_planta" type="text" class="w-full border rounded px-3 py-1.5" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Cuidados</label>
+          <textarea name="cuidados" class="w-full border rounded px-3 py-1.5" rows="2"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Imagen</label>
+          <input name="imagen" type="file" accept="image/*" class="w-full" />
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6 gap-2">
+        <button type="button" onclick="cerrarModal()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+          Cancelar
+        </button>
+        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+          Guardar
+        </button>
+      </div>
+    </form>
+
+    <!-- Botón cerrar (X) -->
+    <button onclick="cerrarModal()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+  </div>
+</div>
+
+<!-- Modal de edición -->
+<div id="modalEditarPlanta" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg w-full max-w-lg p-6 shadow-lg relative">
+    <h2 class="text-xl font-semibold mb-4">Editar Planta</h2>
+
+    <form id="formEditar" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="planta_id" id="editar_id">
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium">Nombre</label>
+          <input name="planta_nom" id="editar_nombre" type="text" class="w-full border rounded px-3 py-1.5" required />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Tipo</label>
+          <input name="tipo_planta" id="editar_tipo" type="text" class="w-full border rounded px-3 py-1.5" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Cuidados</label>
+          <textarea name="cuidados" id="editar_cuidados" class="w-full border rounded px-3 py-1.5" rows="2"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">Imagen (opcional)</label>
+          <input name="imagen" type="file" accept="image/*" class="w-full" />
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6 gap-2">
+        <button type="button" onclick="cerrarModalEditar()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+          Cancelar
+        </button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Actualizar
+        </button>
+      </div>
+    </form>
+
+    <!-- Botón cerrar (X) -->
+    <button onclick="cerrarModalEditar()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+  </div>
+</div>
+
+<!-- Modal Eliminar -->
+<div id="modalEliminar" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg w-full max-w-md p-6 shadow-lg relative">
+    <h2 class="text-xl font-semibold mb-4 text-red-600">¿Estás seguro de eliminar esta planta?</h2>
+
+    <form id="formEliminar" method="POST">
+      {% csrf_token %}
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="cerrarModalEliminar()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+          Cancelar
+        </button>
+        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+          Eliminar
+        </button>
+      </div>
+    </form>
+
+    <button onclick="cerrarModalEliminar()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+  </div>
+</div>
+
+<!-- Modal Ver Detalles -->
+<div id="modalVerPlanta" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg w-full max-w-md p-6 shadow-lg relative">
+    <h2 class="text-xl font-semibold mb-4">Detalles de la Planta</h2>
+
+    <div class="space-y-3 text-sm">
+      <div>
+        <label class="font-bold">Nombre:</label>
+        <p id="ver_nombre" class="text-gray-800"></p>
+      </div>
+      <div>
+        <label class="font-bold">Tipo:</label>
+        <p id="ver_tipo" class="text-gray-800"></p>
+      </div>
+      <div>
+        <label class="font-bold">Cuidados:</label>
+        <p id="ver_cuidados" class="text-gray-800 whitespace-pre-line"></p>
+      </div>
+      <div>
+        <label class="font-bold">Imagen:</label><br />
+        <img id="ver_imagen" src="" alt="Imagen Planta" class="w-32 h-32 object-cover border rounded" />
+      </div>
+    </div>
+
+    <div class="flex justify-end mt-6">
+      <button onclick="cerrarModalVer()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+        Cerrar
+      </button>
+    </div>
+
+    <button onclick="cerrarModalVer()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+  </div>
+</div>
+
+
+
+
+{% if request.method == "POST" %}
+<script>
+  abrirModal();
+</script>
+{% endif %}
+
+<script>
+  function abrirModal() {
+    document.getElementById("modalPlanta").classList.remove("hidden");
+  }
+
+  function cerrarModal() {
+    document.getElementById("modalPlanta").classList.add("hidden");
+  }
+
+  function abrirModalEditar(id, nombre, tipo, cuidados) {
+console.log("ID recibido:", id); // Agrega esto para ver qué valor llega
+
+    document.getElementById("editar_id").value = id;
+    document.getElementById("editar_nombre").value = nombre;
+    document.getElementById("editar_tipo").value = tipo;
+    document.getElementById("editar_cuidados").value = cuidados;
+
+    document.getElementById("modalEditarPlanta").classList.remove("hidden");
+
+    // Cambia la acción del formulario para que apunte al endpoint de edición
+    document.getElementById("formEditar").action = `/editar_planta/${id}/`;
+  }
+
+  function cerrarModalEditar() {
+    document.getElementById("modalEditarPlanta").classList.add("hidden");
+  }
+
+   function abrirModalEliminar(id) {
+    const form = document.getElementById("formEliminar");
+    form.action = `/eliminar_planta/${id}/`;
+    document.getElementById("modalEliminar").classList.remove("hidden");
+  }
+
+  function cerrarModalEliminar() {
+    document.getElementById("modalEliminar").classList.add("hidden");
+  }
+
+  function abrirModalVer(nombre, tipo, cuidados, imagenUrl) {
+  document.getElementById("ver_nombre").innerText = nombre;
+  document.getElementById("ver_tipo").innerText = tipo;
+  document.getElementById("ver_cuidados").innerText = cuidados;
+  const imagen = document.getElementById("ver_imagen");
+  imagen.src = imagenUrl || 'https://via.placeholder.com/128?text=Sin+Imagen';
+  document.getElementById("modalVerPlanta").classList.remove("hidden");
+}
+
+function cerrarModalVer() {
+  document.getElementById("modalVerPlanta").classList.add("hidden");
+}
+
+</script>
+
+
+{% endblock %}
+
+
+

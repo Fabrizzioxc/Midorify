@@ -1,0 +1,127 @@
+
+{% extends "huerto_app/base.html" %}
+{% block title %}Cuidados Programados{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Cuidados Programados</h1>
+
+
+<div class="flex justify-end mb-4">
+  <button onclick="abrirModalCuidado()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
+    ➕ Nuevo Cuidado
+  </button>
+</div>
+
+
+<div class="overflow-x-auto bg-white shadow rounded">
+  <table class="min-w-full table-auto">
+    <thead class="bg-green-600 text-white text-sm">
+      <tr>
+        <th class="px-4 py-2 text-left">Planta</th>
+        <th class="px-4 py-2 text-left">Tipo</th>
+        <th class="px-4 py-2 text-left">Cada (días)</th>
+        <th class="px-4 py-2 text-left">Próxima Fecha</th>
+        <th class="px-4 py-2 text-left">Detalles</th>
+        <th class="px-4 py-2 text-left">Acciones</th>
+      </tr>
+    </thead>
+    <tbody class="text-sm text-gray-700">
+      {% for c in cuidados %}
+      <tr class="border-b">
+        <td class="px-4 py-2">{{ c.planta.planta_nom }}</td>
+        <td class="px-4 py-2">{{ c.tipo_cuidado }}</td>
+        <td class="px-4 py-2">{{ c.frecuen_dias }}</td>
+        <td class="px-4 py-2">{{ c.prox_fecha }}</td>
+        <td class="px-4 py-2">{{ c.detalles|default:"-" }}</td>
+        <td class="px-4 py-2">
+          <a href="#" class="text-blue-600 hover:underline text-xs">Ver</a> |
+          <a href="#" class="text-yellow-600 hover:underline text-xs">Editar</a> |
+          <form method="POST" action="{% url 'eliminar_cuidado' c.id %}" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="text-red-600 hover:underline text-xs">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center text-gray-500 py-4">No hay cuidados registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+<!-- Modal agregar cuidado -->
+<div id="modalCuidado" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg w-full max-w-lg p-6 shadow-lg relative">
+    <h2 class="text-xl font-semibold mb-4">Agregar Cuidado</h2>
+
+    <form method="POST" action="{% url 'agregar_cuidado' %}">
+      {% csrf_token %}
+      <div class="space-y-3">
+        <!-- Planta -->
+        <div>
+          <label class="block text-sm font-medium">Planta</label>
+          <select name="planta_id" class="w-full border rounded px-3 py-1.5" required>
+            {% for planta in plantas %}
+              <option value="{{ planta.planta_id }}">{{ planta.planta_nom }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Tipo de cuidado -->
+        <div>
+          <label class="block text-sm font-medium">Tipo de cuidado</label>
+          <select name="tipo_cuidado" class="w-full border rounded px-3 py-1.5" required>
+            <option value="riego">Riego</option>
+            <option value="poda">Poda</option>
+            <option value="fertilización">Fertilización</option>
+            <option value="limpieza">Limpieza</option>
+            <option value="luz">Luz</option>
+            <option value="temperatura">Temperatura</option>
+          </select>
+        </div>
+
+        <!-- Frecuencia -->
+        <div>
+          <label class="block text-sm font-medium">Frecuencia (días)</label>
+          <input type="number" name="frecuen_dias" class="w-full border rounded px-3 py-1.5" min="1" required>
+        </div>
+
+        <!-- Fecha -->
+        <div>
+          <label class="block text-sm font-medium">Próxima fecha</label>
+          <input type="date" name="prox_fecha" class="w-full border rounded px-3 py-1.5" required>
+        </div>
+
+        <!-- Detalles -->
+        <div>
+          <label class="block text-sm font-medium">Detalles</label>
+          <textarea name="detalles" class="w-full border rounded px-3 py-1.5" rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6 gap-2">
+        <button type="button" onclick="cerrarModalCuidado()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+          Cancelar
+        </button>
+        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+          Guardar
+        </button>
+      </div>
+    </form>
+
+    <!-- Cerrar -->
+    <button onclick="cerrarModalCuidado()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+  </div>
+</div>
+
+<script>
+  function abrirModalCuidado() {
+    document.getElementById("modalCuidado").classList.remove("hidden");
+  }
+
+  function cerrarModalCuidado() {
+    document.getElementById("modalCuidado").classList.add("hidden");
+  }
+</script>
+
+{% endblock %}
