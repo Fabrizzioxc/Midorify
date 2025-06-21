@@ -24,8 +24,8 @@
       </a>
 
       <a href="{% url 'plantas-list' %}" class="flex items-center gap-2 p-2 rounded hover:bg-green-50 {% if request.path == '/plantas/' %}bg-green-100 border-l-4 border-green-600{% endif %}">
-  🌱 Mis Plantas
-</a>
+      🌱 Mis Plantas
+    </a>
       <a href="{% url 'cuidados_programados' %}" class="flex items-center gap-2 p-2 rounded hover:bg-green-50 {% if request.path == '/cuidados/' %}bg-green-100 border-l-4 border-green-600{% endif %}">
         📅 Cuidados Programados
       </a>
@@ -34,8 +34,8 @@
 
       <div class="text-gray-400 text-xs mt-4 ml-2">Acciones rápidas</div>
       <a href="#" onclick="abrirModal()" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">➕ Agregar Plantas</a>
-      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">🧪 Nuevo Cuidado</a>
       <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">📝 Registrar Cuidado</a>
+      <a href="#" class="flex items-center gap-2 p-2 rounded hover:bg-green-50">🧪 Nuevo Cuidado</a>
     </nav>
 
     <div class="mt-auto space-y-1">

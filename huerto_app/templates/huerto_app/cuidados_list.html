@@ -1,17 +1,18 @@
-
 {% extends "huerto_app/base.html" %}
+{% load static %}
 {% block title %}Cuidados Programados{% endblock %}
 {% block content %}
+
 <h1 class="text-2xl font-bold mb-6">Cuidados Programados</h1>
 
-
+<!-- Botón para abrir modal -->
 <div class="flex justify-end mb-4">
   <button onclick="abrirModalCuidado()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
     ➕ Nuevo Cuidado
   </button>
 </div>
 
-
+<!-- Tabla de cuidados -->
 <div class="overflow-x-auto bg-white shadow rounded">
   <table class="min-w-full table-auto">
     <thead class="bg-green-600 text-white text-sm">
@@ -20,6 +21,7 @@
         <th class="px-4 py-2 text-left">Tipo</th>
         <th class="px-4 py-2 text-left">Cada (días)</th>
         <th class="px-4 py-2 text-left">Próxima Fecha</th>
+        <th class="px-4 py-2 text-left">Hora</th>
         <th class="px-4 py-2 text-left">Detalles</th>
         <th class="px-4 py-2 text-left">Acciones</th>
       </tr>
@@ -31,40 +33,50 @@
         <td class="px-4 py-2">{{ c.tipo_cuidado }}</td>
         <td class="px-4 py-2">{{ c.frecuen_dias }}</td>
         <td class="px-4 py-2">{{ c.prox_fecha }}</td>
+        <td class="px-4 py-2">{{ c.hora|default:"-" }}</td>
         <td class="px-4 py-2">{{ c.detalles|default:"-" }}</td>
-        <td class="px-4 py-2">
-          <a href="#" class="text-blue-600 hover:underline text-xs">Ver</a> |
-          <a href="#" class="text-yellow-600 hover:underline text-xs">Editar</a> |
-          <form method="POST" action="{% url 'eliminar_cuidado' c.id %}" class="inline">
-            {% csrf_token %}
-            <button type="submit" class="text-red-600 hover:underline text-xs">Eliminar</button>
-          </form>
+        <td class="px-4 py-2 text-xs">
+          <div class="flex gap-2 items-center">
+            <button
+  onclick="verCuidado('{{ c.planta.planta_nom }}', '{{ c.tipo_cuidado }}', {{ c.frecuen_dias }}, '{{ c.prox_fecha }}', '{{ c.hora|default:"-" }}', '{{ c.detalles|default:"-"|escapejs }}')"
+  class="text-blue-600 hover:underline">
+  Ver
+</button>
+            <button onclick="editarCuidado({{ c.id }}, '{{ c.planta.planta_id }}', '{{ c.tipo_cuidado }}', {{ c.frecuen_dias }}, '{{ c.prox_fecha }}', '{{ c.hora|default:'' }}', '{{ c.detalles|default:''|escapejs }}')" class="text-yellow-600 hover:underline">Editar</button>
+            <form method="POST" action="{% url 'eliminar_cuidado' c.id %}" class="inline">
+              {% csrf_token %}
+              <button type="submit" class="text-red-600 hover:underline">Eliminar</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" class="text-center text-gray-500 py-4">No hay cuidados registrados.</td></tr>
+      <tr>
+        <td colspan="7" class="text-center text-gray-500 py-4">No hay cuidados registrados.</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 
-
-<!-- Modal agregar cuidado -->
+<!-- Modal para agregar o editar cuidado -->
 <div id="modalCuidado" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
   <div class="bg-white rounded-lg w-full max-w-lg p-6 shadow-lg relative">
     <h2 class="text-xl font-semibold mb-4">Agregar Cuidado</h2>
 
-    <form method="POST" action="{% url 'agregar_cuidado' %}">
+    <form method="POST" action="{% url 'agregar_cuidado' %}" id="formCuidado">
       {% csrf_token %}
       <div class="space-y-3">
-        <!-- Planta -->
+
+        <!-- Planta (deshabilitada al editar) -->
         <div>
           <label class="block text-sm font-medium">Planta</label>
-          <select name="planta_id" class="w-full border rounded px-3 py-1.5" required>
+          <select id="planta_id_display" class="w-full border rounded px-3 py-1.5" disabled>
             {% for planta in plantas %}
               <option value="{{ planta.planta_id }}">{{ planta.planta_nom }}</option>
             {% endfor %}
           </select>
+          <input type="hidden" name="planta_id" id="planta_id_real">
         </div>
 
         <!-- Tipo de cuidado -->
@@ -92,6 +104,12 @@
           <input type="date" name="prox_fecha" class="w-full border rounded px-3 py-1.5" required>
         </div>
 
+        <!-- Hora -->
+        <div>
+          <label class="block text-sm font-medium">Hora del cuidado</label>
+          <input type="time" name="hora" class="w-full border rounded px-3 py-1.5" required>
+        </div>
+
         <!-- Detalles -->
         <div>
           <label class="block text-sm font-medium">Detalles</label>
@@ -99,6 +117,7 @@
         </div>
       </div>
 
+      <!-- Botones -->
       <div class="flex justify-end mt-6 gap-2">
         <button type="button" onclick="cerrarModalCuidado()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
           Cancelar
@@ -109,19 +128,39 @@
       </div>
     </form>
 
-    <!-- Cerrar -->
+    <!-- Cerrar modal -->
     <button onclick="cerrarModalCuidado()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
   </div>
 </div>
 
-<script>
-  function abrirModalCuidado() {
-    document.getElementById("modalCuidado").classList.remove("hidden");
-  }
+<!-- Modal Ver Cuidado -->
+<div id="modalVerCuidado" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg w-full max-w-md p-6 shadow-lg relative">
+    <h2 class="text-xl font-semibold mb-4">Detalles del Cuidado</h2>
 
-  function cerrarModalCuidado() {
-    document.getElementById("modalCuidado").classList.add("hidden");
-  }
+    <div class="space-y-2 text-sm text-gray-700">
+      <p><strong>Planta:</strong> <span id="verPlanta"></span></p>
+      <p><strong>Tipo de cuidado:</strong> <span id="verTipo"></span></p>
+      <p><strong>Frecuencia (días):</strong> <span id="verFrecuencia"></span></p>
+      <p><strong>Próxima fecha:</strong> <span id="verFecha"></span></p>
+      <p><strong>Hora:</strong> <span id="verHora"></span></p>
+      <p><strong>Detalles:</strong> <span id="verDetalles"></span></p>
+    </div>
+
+    <div class="flex justify-end mt-6">
+      <button onclick="cerrarModalVerCuidado()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+        Cerrar
+      </button>
+    </div>
+
+    <button onclick="cerrarModalVerCuidado()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+  </div>
+</div>
+
+
+<script>
+  const agregarCuidadoURL = "{% url 'agregar_cuidado' %}";
 </script>
+<script src="{% static 'js/cuidados.js' %}"></script>
 
 {% endblock %}
