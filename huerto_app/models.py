@@ -76,9 +76,9 @@ class HistorialAccion(models.Model):
 # ----------------------------
 class Notificacion(models.Model):
     id = models.AutoField(primary_key=True)
-    planta = models.ForeignKey(Planta, on_delete=models.CASCADE)
+    planta = models.ForeignKey('Planta', on_delete=models.CASCADE)
     tipo_noti = models.CharField(max_length=20)
-    fecha_envio = models.DateField()
+    fecha_envio = models.DateTimeField()
     enviado = models.BooleanField(default=False)
     mensaje = models.TextField(blank=True)
 
